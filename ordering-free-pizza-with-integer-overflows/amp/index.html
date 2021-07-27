@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html ⚡>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+
+    <title>Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think.</title>
+
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="canonical" href="//ordering-free-pizza-with-integer-overflows/" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    
+    <meta property="og:site_name" content="DBL Free" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think." />
+    <meta property="og:description" content="Integer overflows are a concept you often learn about in Computer Science classes; however, it&#x27;s very seldom to see protections against them out in the wild- especially in web development. Integer overflows seem like no big deal when compared to something as dangerous as buffer overflows (which can lead directly" />
+    <meta property="og:url" content="//ordering-free-pizza-with-integer-overflows/" />
+    <meta property="article:published_time" content="2021-07-27T18:03:28.000Z" />
+    <meta property="article:modified_time" content="2021-07-27T18:24:29.000Z" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think." />
+    <meta name="twitter:description" content="Integer overflows are a concept you often learn about in Computer Science classes; however, it&#x27;s very seldom to see protections against them out in the wild- especially in web development. Integer overflows seem like no big deal when compared to something as dangerous as buffer overflows (which can lead directly" />
+    <meta name="twitter:url" content="//ordering-free-pizza-with-integer-overflows/" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Gabe Rust" />
+    
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "publisher": {
+        "@type": "Organization",
+        "name": "DBL Free",
+        "url": "//",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "//content/images/2021/07/banner.png"
+        }
+    },
+    "author": {
+        "@type": "Person",
+        "name": "Gabe Rust",
+        "image": {
+            "@type": "ImageObject",
+            "url": "//content/images/2021/07/profile.jpg",
+            "width": 2000,
+            "height": 2000
+        },
+        "url": "//author/gabe/",
+        "sameAs": []
+    },
+    "headline": "Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think.",
+    "url": "//ordering-free-pizza-with-integer-overflows/",
+    "datePublished": "2021-07-27T18:03:28.000Z",
+    "dateModified": "2021-07-27T18:24:29.000Z",
+    "description": "Integer overflows are a concept you often learn about in Computer Science\nclasses; however, it&#x27;s very seldom to see protections against them out in the\nwild- especially in web development. Integer overflows seem like no big deal\nwhen compared to something as dangerous as buffer overflows (which can lead\ndirectly to remote code execution), and to be fair, integer overflows are not\npossible in most modern programming languages, such as Python and JavaScript. As\nnice as that sounds, integer overflo",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "//"
+    }
+}
+    </script>
+
+    <meta name="generator" content="Ghost 4.10" />
+    <link rel="alternate" type="application/rss+xml" title="DBL Free" href="//rss/" />
+
+    <style amp-custom>
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        overflow-x: hidden;
+        overflow-y: scroll;
+        font-size: 62.5%;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        color: #3a4145;
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;
+        font-size: 1.7rem;
+        line-height: 1.55em;
+        font-weight: 400;
+        font-style: normal;
+        background: #fff;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    p,
+    ul,
+    ol,
+    li,
+    dl,
+    dd,
+    hr,
+    pre,
+    form,
+    table,
+    video,
+    figure,
+    figcaption,
+    blockquote {
+        margin: 0;
+        padding: 0;
+    }
+
+    ul[class],
+    ol[class] {
+        padding: 0;
+        list-style: none;
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    input,
+    button,
+    select,
+    textarea {
+        font: inherit;
+        -webkit-appearance: none;
+    }
+
+    fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label {
+        display: block;
+        font-size: 0.9em;
+        font-weight: 700;
+    }
+
+    hr {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 1px;
+        border: 0;
+        border-top: 1px solid currentcolor;
+        opacity: 0.1;
+    }
+
+    ::selection {
+        text-shadow: none;
+        background: #cbeafb;
+    }
+
+    mark {
+        background-color: #fdffb6;
+    }
+
+    small {
+        font-size: 80%;
+    }
+
+    sub,
+    sup {
+        position: relative;
+        font-size: 75%;
+        line-height: 0;
+        vertical-align: baseline;
+    }
+    sup {
+        top: -0.5em;
+    }
+    sub {
+        bottom: -0.25em;
+    }
+
+    ul li + li {
+        margin-top: 0.6em;
+    }
+
+    a {
+        color: var(--ghost-accent-color, #1292EE);
+        text-decoration-skip-ink: auto;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #121212;
+        line-height: 1.4em;
+    }
+
+    h1 {
+        font-size: 3.4rem;
+        line-height: 1.1em;
+    }
+
+    h2 {
+        font-size: 2.4rem;
+        line-height: 1.2em;
+    }
+
+    h3 {
+        font-size: 1.8rem;
+    }
+
+    h4 {
+        font-size: 1.7rem;
+    }
+
+    h5 {
+        font-size: 1.6rem;
+    }
+
+    h6 {
+        font-size: 1.6rem;
+    }
+
+    amp-img {
+        height: 100%;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    amp-img img {
+        object-fit: cover;
+    }
+
+    .page-header {
+        padding: 50px 5vmin 30px;
+        text-align: center;
+        font-size: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .page-header a {
+        color: #121212;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 1.6rem;
+        letter-spacing: -0.1px;
+    }
+
+    .post {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .post-header {
+        margin: 0 5vmin 5vmin;
+        text-align: center;
+    }
+
+    .post-meta {
+        margin: 1rem 0 0 0;
+        text-transform: uppercase;
+        color: #738a94;
+        font-weight: 500;
+        font-size: 1.3rem;
+    }
+
+    .post-image {
+        margin: 0 0 5vmin;
+    }
+
+    .post-image img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .post-content {
+        padding: 0 5vmin;
+    }
+
+    .post-content > * + * {
+        margin-top: 1.5em;
+    }
+
+    .post-content [id]:not(:first-child) {
+        margin: 2em 0 0;
+    }
+
+    .post-content > [id] + * {
+        margin-top: 1rem;
+    }
+
+    .post-content [id] + .kg-card,
+    .post-content blockquote + .kg-card {
+        margin-top: 40px;
+    }
+
+    .post-content > ul,
+    .post-content > ol,
+    .post-content > dl {
+        padding-left: 1.9em;
+    }
+
+    .post-content hr {
+        margin-top: 40px;
+    }
+
+    .post .post-content hr + * {
+        margin-top: 40px;
+    }
+
+    .post-content amp-img {
+        background-color: #f8f8f8;
+    }
+
+    .post-content blockquote {
+        position: relative;
+        font-style: italic;
+    }
+
+    .post-content blockquote::before {
+        content: "";
+        position: absolute;
+        left: -1.5em;
+        top: 0;
+        bottom: 0;
+        width: 0.3rem;
+        background: var(--ghost-accent-color, #1292EE);
+    }
+
+    .post-content :not(.kg-card):not([id]) + .kg-card {
+        margin-top: 40px;
+    }
+
+    .post-content .kg-card + :not(.kg-card) {
+        margin-top: 40px;
+    }
+
+    .kg-card figcaption {
+        padding: 1.5rem 1.5rem 0;
+        text-align: center;
+        font-weight: 500;
+        font-size: 1.3rem;
+        line-height: 1.4em;
+        opacity: 0.6;
+    }
+
+    .kg-card figcaption strong {
+        color: rgba(0,0,0,0.8);
+    }
+
+    .post-content :not(pre) code {
+        vertical-align: middle;
+        padding: 0.15em 0.4em 0.15em;
+        border: #e1eaef 1px solid;
+        font-weight: 400;
+        font-size: 0.9em;
+        line-height: 1em;
+        color: #15171a;
+        background: #f0f6f9;
+        border-radius: 0.25em;
+    }
+
+    .post-content > pre {
+        overflow: scroll;
+        padding: 16px 20px;
+        color: #fff;
+        background: #1F2428;
+        border-radius: 5px;
+        box-shadow: 0 2px 6px -2px rgba(0,0,0,.1), 0 0 1px rgba(0,0,0,.4);
+    }
+
+    .kg-embed-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .kg-image-card img {
+        margin: auto;
+    }
+
+    .kg-gallery-card + .kg-gallery-card {
+        margin-top: 0.75em;
+    }
+
+    .kg-gallery-container {
+        position: relative;
+    }
+
+    .kg-gallery-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .kg-gallery-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .kg-gallery-row:not(:first-of-type) {
+        margin: 0.75em 0 0 0;
+    }
+
+    .kg-gallery-image:not(:first-of-type) {
+        margin: 0 0 0 0.75em;
+    }
+
+    .kg-bookmark-card,
+    .kg-bookmark-publisher {
+        position: relative;
+    }
+
+    .kg-bookmark-container,
+    .kg-bookmark-container:hover {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row-reverse;
+        color: currentColor;
+        background: rgba(255,255,255,0.6);
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;
+        text-decoration: none;
+        border-radius: 5px;
+        box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+    }
+
+    .kg-bookmark-content {
+        flex-basis: 0;
+        flex-grow: 999;
+        padding: 20px;
+        order: 1;
+    }
+
+    .kg-bookmark-title {
+        font-weight: 600;
+        font-size: 1.5rem;
+        line-height: 1.3em;
+    }
+
+    .kg-bookmark-description {
+        display: -webkit-box;
+        max-height: 45px;
+        margin: 0.5em 0 0 0;
+        font-size: 1.4rem;
+        line-height: 1.55em;
+        overflow: hidden;
+        opacity: 0.8;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .kg-bookmark-metadata {
+        margin-top: 20px;
+    }
+
+    .kg-bookmark-metadata {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 1.3rem;
+        line-height: 1.3em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .kg-bookmark-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .kg-bookmark-metadata amp-img {
+        width: 18px;
+        height: 18px;
+        max-width: 18px;
+        max-height: 18px;
+        margin-right: 10px;
+    }
+
+    .kg-bookmark-thumbnail {
+        display: flex;
+        flex-basis: 20rem;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    .kg-bookmark-thumbnail amp-img {
+        max-height: 200px;
+    }
+
+    .kg-bookmark-author {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .kg-bookmark-publisher::before {
+        content: "•";
+        margin: 0 .5em;
+    }
+
+    .kg-width-full.kg-card-hascaption {
+        display: grid;
+        grid-template-columns: inherit;
+    }
+
+    .post-content table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .post-content th {
+        padding: 0.5em 0.8em;
+        text-align: left;
+        font-size: .75em;
+        text-transform: uppercase;
+    }
+
+    .post-content td {
+        padding: 0.4em 0.7em;
+    }
+
+    .post-content tbody tr:nth-child(2n + 1) {
+        background-color: rgba(0,0,0,0.1);
+        padding: 1px;
+    }
+
+    .post-content tbody tr:nth-child(2n + 2) td:last-child {
+        box-shadow:
+            inset 1px 0 rgba(0,0,0,0.1),
+            inset -1px 0 rgba(0,0,0,0.1);
+    }
+
+    .post-content tbody tr:nth-child(2n + 2) td {
+        box-shadow: inset 1px 0 rgba(0,0,0,0.1);
+    }
+
+    .post-content tbody tr:last-child {
+        border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+
+    .page-footer {
+        padding: 60px 5vmin;
+        margin: 60px auto 0;
+        text-align: center;
+        background-color: #f8f8f8;
+    }
+
+    .page-footer h3 {
+        margin: 0.5rem 0 0 0;
+    }
+
+    .page-footer p {
+        max-width: 500px;
+        margin: 1rem auto 1.5rem;
+        font-size: 1.7rem;
+        line-height: 1.5em;
+        color: rgba(0,0,0,0.6)
+    }
+
+    .powered {
+        display: inline-flex;
+        align-items: center;
+        margin: 30px 0 0;
+        padding: 6px 9px 6px 6px;
+        border: rgba(0,0,0,0.1) 1px solid;
+        font-size: 12px;
+        line-height: 12px;
+        letter-spacing: -0.2px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        font-weight: 500;
+        color: #222;
+        text-decoration: none;
+        background: #fff;
+        border-radius: 6px;
+    }
+
+    .powered svg {
+        height: 16px;
+        width: 16px;
+        margin: 0 6px 0 0;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            font-size: 1.6rem;
+        }
+        h1 {
+            font-size: 3rem;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        h1 {
+            font-size: 2.6rem;
+            line-height: 1.15em;
+        }
+        h2 {
+            font-size: 2rem;
+            line-height: 1.2em;
+        }
+        h3 {
+            font-size: 1.7rem;
+        }
+    }
+
+    :root {--ghost-accent-color: #2a3230;}
+    </style>
+
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+    
+
+</head>
+
+<body class="amp-template">
+    <header class="page-header">
+        <a href="/">
+                <amp-img class="site-icon" src="//content/images/2021/07/logo-circle.png" width="50" height="50" layout="fixed"></amp-img>
+        </a>
+    </header>
+
+    <main class="content" role="main">
+        <article class="post">
+
+            <header class="post-header">
+                <h1 class="post-title">Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think.</h1>
+                <section class="post-meta">
+                    Gabe Rust -
+                    <time class="post-date" datetime="2021-07-27">27 Jul 2021</time>
+                </section>
+            </header>
+            <section class="post-content">
+
+                <p>Integer overflows are a concept you often learn about in Computer Science classes; however, it's very seldom to see protections against them out in the wild- especially in web development. Integer overflows seem like no big deal when compared to something as dangerous as buffer overflows (which can lead directly to remote code execution), and to be fair, integer overflows are not possible in most modern programming languages, such as Python and JavaScript. As nice as that sounds, integer overflows are still alive and sucking air in compiled languages such as C/C++, Java, and Go. With Java occupying a vast share of technology stacks used in the corporate world, and Go becoming increasingly more popular as a tool for web development, it is important that web developers become familiar with the risks introduced by the integer overflow features that are inherent to these languages.</p><p>To start off, what exactly is an integer overflow? The way most compiled programming languages store integers is by pre-allocating a fixed size block of memory that is 4 bytes (or 32 bits) long for your standard 32-bit <code>int</code> data type. For unsigned integers (ranging from 0 to 4,294,967,295), the integer is stored in its raw binary form. For signed integers (ranging -2,147,483,648 to 2,147,483,647), it's a little different. In this case, the very first bit in memory acts as a "negative switch", meaning that the integer gets evaluated as <code>-(2^31)</code> plus the positive value of the rest of the memory. Reflecting on binary math, consider the following number: <code>01111111111111111111111111111111</code> (2,147,483,647)</p><p>By adding just <code>1</code> , the number becomes <code>10000000000000000000000000000000</code> (-2,147,483,648), which is the negative minimum. Essentially, the integer overflowed. Let's take this even further, and increase the integer until we get to this point: <code>11111111111111111111111111111111</code> (-1)</p><p>By adding <code>1</code> again, all of the ones become zeros and the bit just to the left of the allocated memory should theoretically become a one. However, the integer is bound to the pre-allocated space, so any leading bits get ignored, meaning that the integer is back to <code>0</code> . Adding <code>1</code> to <code>-1</code> to get <code>0</code> isn't a bug in that sense, but an integer overflow does technically occur under the hood in order for the negative bit to get turned off. In this case, the program is actually taking advantage of the integer overflow in order to function properly. Increasing a negative value to get a positive = OK, and increasing a positive value to get a negative = No thanks.</p><p>An oversimplified way to think about integer overflows is to imagine an analog odometer on an old car, which is similar to how computational integers work in concept. When the odometer gets up to 999,999 miles (if you're lucky enough), it resets to zero on the following mile.</p><p>So what is the impact of an integer overflow? Well potentially, free pizza! Imagine this imaginary pizza shop, which allows customers to provide a custom tip amount (other applications could include a custom donation amount):</p><pre><code class="language-java">import java.util.Scanner;
+
+public class PizzaShop {
+
+  public static void main(String[] args) { 
+    Scanner in = new Scanner(System.in);
+
+    final int pizzaPrice = 15;
+    int customerWallet = 5;
+
+    while (true) {
+      System.out.println("\nWelcome to the Pizza Shop!");
+      System.out.println("You have $" + customerWallet + ".");
+      System.out.println("Pizzas are $15 a piece.");
+      System.out.println("How many would you like?");
+      System.out.print("&gt;");
+      int pizzaCount = in.nextInt();
+
+      System.out.println("How much would you like to leave as a tip?");
+      System.out.print("&gt;");
+      int tipAmount = in.nextInt();
+
+      int total = pizzaPrice * pizzaCount + tipAmount;
+      System.out.println("Your total is $" + total + ".");
+
+      if (total &lt; 0 || total &gt; customerWallet) {
+        System.out.println("As the Pizza Shop owner, I must respectfully decline this transaction.");
+        continue;
+      }
+
+      System.out.println("Continue with your purchase? (y/n)");
+      System.out.print("&gt;");
+      String input = in.next();
+      if (!String.valueOf(input.charAt(0)).equalsIgnoreCase("y")) {
+        break;
+      }
+
+      customerWallet -= total;
+      System.out.println("You purchased " + pizzaCount + " pizzas for $" + total + "!");
+    }
+
+    System.out.println("Goodbye! Please come again!");
+  }
+
+}</code></pre><p>For non pizza stealing individuals, this works as expected:</p><pre><code class="language-plaintext">Welcome to the Pizza Shop!
+You have $5.
+Pizzas are $15 a piece.
+How many would you like?
+&gt;1
+How much would you like to leave as a tip?
+&gt;0
+Your total is $15.
+As the Pizza Shop owner, I must respectfully decline this transaction.</code></pre><p>But for sketchy people who <em>really</em> love pizza:</p><pre><code class="language-plaintext">Welcome to the Pizza Shop!
+You have $5.
+Pizzas are $15 a piece.
+How many would you like?
+&gt;286331152
+How much would you like to leave as a tip?
+&gt;16
+Your total is $0.
+Continue with your purchase? (y/n)
+&gt;y
+You purchased 286331152 pizzas for $0!</code></pre><p>Conceptually, this is no different in a web application. Under the right circumstances, integer overflows are an exploitable issue. I'm not sure who could eat close to 300 million pizzas, but this just further stresses the additional need to limit the number and price of items a person can buy online. As an additional lesson, if someone is buying such an expensive item, or such a high volume of items that total even remotely close to the upper integer bounds of the programming language... they probably shouldn't be paying online with a credit card, and the transaction should probably require a physical invoice, and potentially even face-to-face interaction.</p>
+
+            </section>
+
+        </article>
+    </main>
+    <footer class="page-footer">
+            <amp-img class="site-icon" src="//content/images/2021/07/logo-circle.png" width="50" height="50" layout="fixed"></amp-img>
+        <h3>DBL Free</h3>
+            <p>InfoSec Professional and Developer of Things</p>
+        <p><a href="/">Read more posts →</a></p>
+        <a class="powered" href="https://ghost.org" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 156"><g fill="none" fill-rule="evenodd"><rect fill="#15212B" width="156" height="156" rx="27"/><g transform="translate(36 36)" fill="#F6F8FA"><path d="M0 71.007A4.004 4.004 0 014 67h26a4 4 0 014 4.007v8.986A4.004 4.004 0 0130 84H4a4 4 0 01-4-4.007v-8.986zM50 71.007A4.004 4.004 0 0154 67h26a4 4 0 014 4.007v8.986A4.004 4.004 0 0180 84H54a4 4 0 01-4-4.007v-8.986z"/><rect y="34" width="84" height="17" rx="4"/><path d="M0 4.007A4.007 4.007 0 014.007 0h41.986A4.003 4.003 0 0150 4.007v8.986A4.007 4.007 0 0145.993 17H4.007A4.003 4.003 0 010 12.993V4.007z"/><rect x="67" width="17" height="17" rx="4"/></g></g></svg> Published with Ghost</a>
+    </footer>
+    
+</body>
+</html>
