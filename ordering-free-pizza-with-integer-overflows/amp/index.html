@@ -16,7 +16,7 @@
     <meta property="og:description" content="Integer overflows are a concept you often learn about in Computer Science classes; however, it&#x27;s very seldom to see protections against them out in the wild- especially in web development. Integer overflows seem like no big deal when compared to something as dangerous as buffer overflows (which can lead directly" />
     <meta property="og:url" content="https://dblfree.com/ordering-free-pizza-with-integer-overflows/" />
     <meta property="article:published_time" content="2021-07-27T18:03:28.000Z" />
-    <meta property="article:modified_time" content="2021-07-27T21:02:05.000Z" />
+    <meta property="article:modified_time" content="2021-07-28T01:16:19.000Z" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think." />
     <meta name="twitter:description" content="Integer overflows are a concept you often learn about in Computer Science classes; however, it&#x27;s very seldom to see protections against them out in the wild- especially in web development. Integer overflows seem like no big deal when compared to something as dangerous as buffer overflows (which can lead directly" />
@@ -52,7 +52,7 @@
     "headline": "Ordering Free Pizza With Integer Overflows- And Why They&#x27;re More Important Than You Think.",
     "url": "https://dblfree.com/ordering-free-pizza-with-integer-overflows/",
     "datePublished": "2021-07-27T18:03:28.000Z",
-    "dateModified": "2021-07-27T21:02:05.000Z",
+    "dateModified": "2021-07-28T01:16:19.000Z",
     "description": "Integer overflows are a concept you often learn about in Computer Science\nclasses; however, it&#x27;s very seldom to see protections against them out in the\nwild- especially in web development. Integer overflows seem like no big deal\nwhen compared to something as dangerous as buffer overflows (which can lead\ndirectly to remote code execution), and to be fair, integer overflows are not\npossible in most modern programming languages, such as Python and JavaScript. As\nnice as that sounds, integer overflo",
     "mainEntityOfPage": {
         "@type": "WebPage",
@@ -655,65 +655,78 @@
 
 public class PizzaShop {
 
-  public static void main(String[] args) { 
-    Scanner in = new Scanner(System.in);
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
 
-    final int pizzaPrice = 15;
-    int customerWallet = 5;
+        final int pizzaPrice = 15;
+        int customerWallet = 5;
 
-    while (true) {
-      System.out.println("\nWelcome to the Pizza Shop!");
-      System.out.println("You have $" + customerWallet + ".");
-      System.out.println("Pizzas are $15 a piece.");
-      System.out.println("How many would you like?");
-      System.out.print("&gt;");
-      int pizzaCount = in.nextInt();
+        System.out.println("Welcome to the Pizza Shop!\n");
 
-      System.out.println("How much would you like to leave as a tip?");
-      System.out.print("&gt;");
-      int tipAmount = in.nextInt();
+        while (true) {
+            System.out.println("You have $" + customerWallet + ".");
+            System.out.println("Pizzas are $15 a piece.");
+            System.out.println("How many would you like?");
+            System.out.print("&gt; ");
+            int pizzaCount = in.nextInt();
 
-      int total = pizzaPrice * pizzaCount + tipAmount;
-      System.out.println("Your total is $" + total + ".");
+            System.out.println("How much would you like to leave as a tip?");
+            System.out.print("&gt; ");
+            int tipAmount = in.nextInt();
 
-      if (total &lt; 0 || total &gt; customerWallet) {
-        System.out.println("As the Pizza Shop owner, I must respectfully decline this transaction.");
-        continue;
-      }
+            int total = pizzaPrice * pizzaCount + tipAmount;
+            System.out.println("Your total is $" + total + ".");
 
-      System.out.println("Continue with your purchase? (y/n)");
-      System.out.print("&gt;");
-      String input = in.next();
-      if (!String.valueOf(input.charAt(0)).equalsIgnoreCase("y")) {
-        break;
-      }
+            if (total &lt; 0 || total &gt; customerWallet) {
+                System.out.println("As the Pizza Shop owner, I must respectfully decline this transaction.");
+                break;
+            }
 
-      customerWallet -= total;
-      System.out.println("You purchased " + pizzaCount + " pizzas for $" + total + "!");
+            System.out.println("Continue with your purchase? (y/n)");
+            System.out.print("&gt; ");
+            String input = in.next();
+            if (String.valueOf(input.charAt(0)).equalsIgnoreCase("y")) {
+                customerWallet -= total;
+                System.out.println("You purchased " + pizzaCount + " pizzas for $" + total + "!");
+            }
+
+            System.out.println("Start another order? (y/n)");
+            System.out.print("&gt; ");
+            input = in.next();
+            if (!String.valueOf(input.charAt(0)).equalsIgnoreCase("y")) {
+                break;
+            }
+        }
+        System.out.println("\nGoodbye! Please come again!");
     }
 
-    System.out.println("Goodbye! Please come again!");
-  }
-
 }</code></pre><p>For non pizza stealing individuals, this works as expected:</p><pre><code class="language-plaintext">Welcome to the Pizza Shop!
+
 You have $5.
 Pizzas are $15 a piece.
 How many would you like?
-&gt;1
+&gt; 1
 How much would you like to leave as a tip?
-&gt;0
+&gt; 0
 Your total is $15.
-As the Pizza Shop owner, I must respectfully decline this transaction.</code></pre><p>But for sketchy people who <em>really</em> love pizza:</p><pre><code class="language-plaintext">Welcome to the Pizza Shop!
+As the Pizza Shop owner, I must respectfully decline this transaction.
+
+Goodbye! Please come again!</code></pre><p>But for sketchy people who <em>really</em> love pizza:</p><pre><code class="language-plaintext">Welcome to the Pizza Shop!
+
 You have $5.
 Pizzas are $15 a piece.
 How many would you like?
-&gt;286331152
+&gt; 286331152
 How much would you like to leave as a tip?
-&gt;16
+&gt; 16
 Your total is $0.
 Continue with your purchase? (y/n)
-&gt;y
-You purchased 286331152 pizzas for $0!</code></pre><p>Conceptually, this is no different in a web application. Under the right circumstances, integer overflows are an exploitable issue. I'm not sure who could eat close to 300 million pizzas, but this just further stresses the additional need to limit the number and price of items a person can buy online. As an additional lesson, if someone is buying such an expensive item, or such a high volume of items that total even remotely close to the upper integer bounds of the programming language... they probably shouldn't be paying online with a credit card, and the transaction should probably require a physical invoice, and potentially even face-to-face interaction.</p>
+&gt; y
+You purchased 286331152 pizzas for $0!
+Start another order? (y/n)
+&gt; n
+
+Goodbye! Please come again!</code></pre><p>Conceptually, this is no different in a web application. Under the right circumstances, integer overflows are an exploitable issue. I'm not sure who could eat close to 300 million pizzas, but this just further stresses the additional need to limit the number and price of items a person can buy online. As an additional lesson, if someone is buying such an expensive item, or such a high volume of items that total even remotely close to the upper integer bounds of the programming language... they probably shouldn't be paying online with a credit card, and the transaction should probably require a physical invoice, and potentially even face-to-face interaction.</p>
 
             </section>
 
